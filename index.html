@@ -636,42 +636,8 @@
       });
     });
 
-    // ===== SIGNUP (With Email Verification) =====
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  https://YOUR_://domain.com%
 
-      const name     = document.getElementById("signup-name").value.trim();
-      const email    = document.getElementById("signup-email").value.trim();
-      const pass     = document.getElementById("signup-pass").value;
-      const confirm  = document.getElementById("signup-confirm").value;
-      const btn      = document.getElementById("signup-btn");
-
-      if (pass !== confirm) {
-        showMsg("⚠️ Passwords match nahi kar rahe!", "error");
-        return;
-      }
-
-      setLoading(btn, true);
-
-      try {
-        const result = await auth.createUserWithEmailAndPassword(email, pass);
-        await result.user.updateProfile({ displayName: name });
-        
-        // Send Verification Email
-        await result.user.sendEmailVerification();
-
-        showMsg("✅ Account created! Verification email bhej diya gaya hai. Inbox check karo.", "success");
-        
-        // Auto logout until verified (Optional security step)
-        await auth.signOut();
-        showLogin();
-        
-      } catch (err) {
-        showMsg(friendlyError(err.code), "error");
-      } finally {
-        setLoading(btn, false);
-      }
-    });
 
     // ===== LOGIN (Check Verification) =====
     loginForm.addEventListener("submit", async (e) => {
