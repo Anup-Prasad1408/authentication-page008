@@ -3,16 +3,387 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A responsive sign-in and sign-up page demo.">
-  <meta name="theme-color" content="#18372d">
-  <title>Account access — Brightpath</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <title>Authentication Page</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1e2924;
+      background: #f5f7f5;
+      -webkit-font-smoothing: antialiased;
+      --green: #245541;
+      --green-dark: #18372d;
+      --muted: #748078;
+      --border: #dfe6e1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(57, 129, 91, 0.3);
+      outline-offset: 2px;
+    }
+
+    .page-shell {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+      max-width: 1600px;
+      margin: 0 auto;
+      background: #fff;
+    }
+
+    /* ===== LEFT PANEL ===== */
+    .brand-panel {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: clamp(2rem, 5vw, 5rem);
+      color: #fff;
+      background:
+        radial-gradient(ellipse at 12% 90%, rgba(96,148,112,.24), transparent 48%),
+        linear-gradient(145deg, #142b23 0%, #24513c 100%);
+    }
+
+    .brand-panel::before,
+    .brand-panel::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .brand-panel::before {
+      right: -16rem; bottom: -15rem;
+      width: 38rem; aspect-ratio: 1;
+    }
+
+    .brand-panel::after {
+      right: -8rem; bottom: -7rem;
+      width: 22rem; aspect-ratio: 1;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .7rem;
+      width: fit-content;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -.03em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.1rem; height: 2.1rem;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: .7rem;
+      color: #d7edcf;
+      font-size: 1.1rem;
+    }
+
+    .brand-copy { max-width: 31rem; margin: 4rem 0; }
+
+    .eyebrow {
+      margin: 0 0 1rem;
+      color: #789485;
+      font-size: .72rem;
+      font-weight: 750;
+      letter-spacing: .15em;
+    }
+
+    .brand-panel .eyebrow { color: #c1ddc6; }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 5.3vw, 5.2rem);
+      font-weight: 600;
+      letter-spacing: -.065em;
+      line-height: 1.02;
+    }
+
+    .brand-description {
+      max-width: 25rem;
+      margin: 1.5rem 0 0;
+      color: rgba(255,255,255,.76);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .panel-note {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      color: rgba(255,255,255,.75);
+      font-size: .88rem;
+    }
+
+    .panel-note p { margin: 0; }
+
+    .note-dot {
+      width: .55rem; height: .55rem;
+      border-radius: 50%;
+      background: #b7dfaa;
+      box-shadow: 0 0 1rem rgba(183,223,170,.7);
+    }
+
+    /* ===== RIGHT PANEL ===== */
+    .auth-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 3rem clamp(1.5rem, 4vw, 4rem) 1.5rem;
+      background: #fff;
+    }
+
+    .auth-card { width: min(100%, 430px); margin: auto 0; }
+
+    .card-heading { margin-bottom: 1.8rem; }
+    .card-heading .eyebrow { margin-bottom: .7rem; }
+
+    .card-heading h2 {
+      margin: 0;
+      color: #202b25;
+      font-size: clamp(2rem, 4vw, 2.55rem);
+      font-weight: 650;
+      letter-spacing: -.06em;
+      line-height: 1.1;
+    }
+
+    .card-heading > p:last-child {
+      margin: .75rem 0 0;
+      color: var(--muted);
+      font-size: .96rem;
+      line-height: 1.6;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .25rem;
+      padding: .3rem;
+      border: 1px solid #e9eeea;
+      border-radius: .85rem;
+      background: #f5f7f5;
+    }
+
+    .mode-button {
+      min-height: 2.65rem;
+      padding: .6rem 1rem;
+      border: 0;
+      border-radius: .6rem;
+      color: #657169;
+      background: transparent;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      color: #203c2d;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(31,50,39,.12);
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 1.15rem;
+      margin-top: 1.55rem;
+    }
+
+    .auth-form[hidden],
+    .feedback[hidden] { display: none; }
+
+    .field { display: grid; gap: .48rem; }
+
+    .field label {
+      color: #35423a;
+      font-size: .84rem;
+      font-weight: 600;
+    }
+
+    .field-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+    }
+
+    .text-button {
+      padding: 0;
+      border: 0;
+      color: var(--green);
+      background: transparent;
+      font-size: .8rem;
+      font-weight: 650;
+    }
+
+    .text-button:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .field input:not([type="checkbox"]) {
+      width: 100%;
+      min-height: 3.05rem;
+      padding: .75rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: .7rem;
+      color: #202b25;
+      background: #fff;
+      font-size: .91rem;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .field input::placeholder { color: #a0aaa3; }
+
+    .field input:not([type="checkbox"]):focus {
+      border-color: #5b8b6d;
+      box-shadow: 0 0 0 3px rgba(67,123,84,.1);
+      outline: none;
+    }
+
+    .password-field { position: relative; }
+    .password-field input { padding-right: 4.4rem !important; }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%; right: .85rem;
+      padding: .25rem;
+      transform: translateY(-50%);
+      border: 0;
+      color: #5b7664;
+      background: transparent;
+      font-size: .78rem;
+      font-weight: 650;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      color: #68746c;
+      font-size: .82rem;
+      cursor: pointer;
+    }
+
+    .check-row input {
+      width: 1rem; height: 1rem;
+      margin: 0;
+      accent-color: var(--green);
+    }
+
+    .primary-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 3.1rem;
+      padding: .8rem 1rem;
+      border: 0;
+      border-radius: .72rem;
+      color: #fff;
+      background: var(--green);
+      font-size: .92rem;
+      font-weight: 650;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    .primary-button:hover {
+      transform: translateY(-1px);
+      background: #1e4836;
+    }
+
+    .primary-button span:last-child { font-size: 1.2rem; }
+
+    .security-note {
+      margin: -.15rem 0 0;
+      color: #79847d;
+      font-size: .76rem;
+      line-height: 1.55;
+    }
+
+    .feedback {
+      margin: 1rem 0 0;
+      padding: .85rem .95rem;
+      border: 1px solid #d6e8da;
+      border-radius: .7rem;
+      color: #254d35;
+      background: #f0f7f1;
+      font-size: .84rem;
+      line-height: 1.5;
+    }
+
+    .auth-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      width: min(100%, 430px);
+      margin-top: 2rem;
+      color: #98a19b;
+      font-size: .72rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 820px) {
+      .page-shell { grid-template-columns: 1fr; }
+
+      .brand-panel {
+        min-height: auto;
+        padding: 1rem clamp(1.25rem, 6vw, 3rem);
+      }
+
+      .brand-copy, .panel-note { display: none; }
+
+      .auth-side {
+        min-height: calc(100vh - 70px);
+        padding: 2.5rem 1.25rem 1rem;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .auth-side { padding: 2rem 1.1rem 1rem; }
+      .auth-footer { font-size: .68rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <main class="page-shell">
-    <section class="brand-panel" aria-label="About Brightpath">
-      <a class="brand" href="./" aria-label="Brightpath home">
+
+    <!-- LEFT PANEL -->
+    <section class="brand-panel" aria-label="About">
+      <a class="brand" href="./">
         <span class="brand-mark" aria-hidden="true">✦</span>
         <span>brightpath</span>
       </a>
@@ -31,48 +402,31 @@
       </div>
     </section>
 
+    <!-- RIGHT PANEL -->
     <section class="auth-side" aria-label="Account access">
       <div class="auth-card">
+
         <header class="card-heading">
           <p class="eyebrow" id="heading-eyebrow">YOUR ACCOUNT</p>
           <h2 id="heading-title">Welcome back</h2>
           <p id="heading-description">Sign in to continue where you left off.</p>
         </header>
 
-        <div class="mode-switch" role="group" aria-label="Choose an account action">
-          <button
-            class="mode-button is-active"
-            type="button"
-            id="login-tab"
-            aria-pressed="true"
-            aria-controls="login-form"
-          >
-            Sign in
-          </button>
-          <button
-            class="mode-button"
-            type="button"
-            id="signup-tab"
-            aria-pressed="false"
-            aria-controls="signup-form"
-          >
-            Sign up
-          </button>
+        <div class="mode-switch" role="group" aria-label="Choose action">
+          <button class="mode-button is-active" type="button"
+                  id="login-tab" aria-pressed="true">Sign in</button>
+          <button class="mode-button" type="button"
+                  id="signup-tab" aria-pressed="false">Sign up</button>
         </div>
 
-        <p class="feedback" id="form-message" role="status" aria-live="polite" hidden></p>
+        <p class="feedback" id="form-message" role="status" hidden></p>
 
+        <!-- LOGIN FORM -->
         <form class="auth-form" id="login-form">
           <div class="field">
             <label for="login-email">Email address</label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autocomplete="email"
-              required
-            >
+            <input id="login-email" type="email"
+                   placeholder="you@example.com" autocomplete="email" required>
           </div>
 
           <div class="field">
@@ -82,134 +436,156 @@
                 Forgot password?
               </button>
             </div>
-
             <div class="password-field">
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                placeholder="At least 8 characters"
-                autocomplete="current-password"
-                minlength="8"
-                required
-              >
-              <button
-                class="password-toggle"
-                type="button"
-                data-password-target="login-password"
-                aria-label="Show password"
-                aria-pressed="false"
-              >
-                Show
-              </button>
+              <input id="login-password" type="password"
+                     placeholder="At least 8 characters"
+                     autocomplete="current-password" minlength="8" required>
+              <button class="password-toggle" type="button"
+                      data-target="login-password">Show</button>
             </div>
           </div>
 
-          <label class="check-row" for="remember-me">
-            <input id="remember-me" name="remember" type="checkbox">
+          <label class="check-row">
+            <input type="checkbox">
             <span>Remember me on this device</span>
           </label>
 
           <button class="primary-button" type="submit">
-            <span>Sign in</span>
-            <span aria-hidden="true">→</span>
+            <span>Sign in</span><span aria-hidden="true">→</span>
           </button>
 
           <p class="security-note">
-            Demo only — do not enter a real password. This page has no authentication backend.
+            Demo only — do not enter a real password. No backend connected.
           </p>
         </form>
 
+        <!-- SIGNUP FORM -->
         <form class="auth-form" id="signup-form" hidden>
           <div class="field">
             <label for="signup-name">Full name</label>
-            <input
-              id="signup-name"
-              name="name"
-              type="text"
-              placeholder="Your name"
-              autocomplete="name"
-              minlength="2"
-              required
-            >
+            <input id="signup-name" type="text"
+                   placeholder="Your name" autocomplete="name" minlength="2" required>
           </div>
 
           <div class="field">
             <label for="signup-email">Email address</label>
-            <input
-              id="signup-email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autocomplete="email"
-              required
-            >
+            <input id="signup-email" type="email"
+                   placeholder="you@example.com" autocomplete="email" required>
           </div>
 
           <div class="field">
             <label for="signup-password">Password</label>
             <div class="password-field">
-              <input
-                id="signup-password"
-                name="password"
-                type="password"
-                placeholder="At least 8 characters"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              >
-              <button
-                class="password-toggle"
-                type="button"
-                data-password-target="signup-password"
-                aria-label="Show password"
-                aria-pressed="false"
-              >
-                Show
-              </button>
+              <input id="signup-password" type="password"
+                     placeholder="At least 8 characters"
+                     autocomplete="new-password" minlength="8" required>
+              <button class="password-toggle" type="button"
+                      data-target="signup-password">Show</button>
             </div>
           </div>
 
           <div class="field">
             <label for="signup-confirm">Confirm password</label>
             <div class="password-field">
-              <input
-                id="signup-confirm"
-                name="confirm-password"
-                type="password"
-                placeholder="Enter the password again"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              >
-              <button
-                class="password-toggle"
-                type="button"
-                data-password-target="signup-confirm"
-                aria-label="Show password"
-                aria-pressed="false"
-              >
-                Show
-              </button>
+              <input id="signup-confirm" type="password"
+                     placeholder="Enter the password again"
+                     autocomplete="new-password" minlength="8" required>
+              <button class="password-toggle" type="button"
+                      data-target="signup-confirm">Show</button>
             </div>
           </div>
 
           <button class="primary-button" type="submit">
-            <span>Create demo account</span>
-            <span aria-hidden="true">→</span>
+            <span>Create demo account</span><span aria-hidden="true">→</span>
           </button>
 
           <p class="security-note">
-            Demo only — no account is created and no credentials are saved or sent.
+            Demo only — no account is created and no data is saved.
           </p>
         </form>
+
       </div>
 
       <footer class="auth-footer">
-        <span>© <span id="current-year">2025</span> Brightpath</span>
+        <span>© <span id="year">2025</span> Brightpath</span>
         <span>Authentication page demo</span>
       </footer>
     </section>
+
   </main>
+
+  <script>
+    const loginTab    = document.getElementById("login-tab");
+    const signupTab   = document.getElementById("signup-tab");
+    const loginForm   = document.getElementById("login-form");
+    const signupForm  = document.getElementById("signup-form");
+    const msg         = document.getElementById("form-message");
+    const hEyebrow    = document.getElementById("heading-eyebrow");
+    const hTitle      = document.getElementById("heading-title");
+    const hDesc       = document.getElementById("heading-description");
+    const sPass       = document.getElementById("signup-password");
+    const sConfirm    = document.getElementById("signup-confirm");
+
+    function showMsg(text) {
+      msg.textContent = text;
+      msg.hidden = false;
+    }
+
+    function setMode(mode) {
+      const isSignup = mode === "signup";
+      loginForm.hidden  = isSignup;
+      signupForm.hidden = !isSignup;
+      loginTab.setAttribute("aria-pressed", String(!isSignup));
+      signupTab.setAttribute("aria-pressed", String(isSignup));
+      loginTab.classList.toggle("is-active", !isSignup);
+      signupTab.classList.toggle("is-active", isSignup);
+
+      if (isSignup) {
+        hEyebrow.textContent = "GET STARTED";
+        hTitle.textContent   = "Create your account";
+        hDesc.textContent    = "Enter your details to try the sign-up demo.";
+      } else {
+        hEyebrow.textContent = "YOUR ACCOUNT";
+        hTitle.textContent   = "Welcome back";
+        hDesc.textContent    = "Sign in to continue where you left off.";
+      }
+      msg.hidden = true;
+    }
+
+    loginTab.addEventListener("click",  () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
+
+    document.querySelectorAll(".password-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById(btn.dataset.target);
+        const show  = input.type === "password";
+        input.type  = show ? "text" : "password";
+        btn.textContent = show ? "Hide" : "Show";
+      });
+    });
+
+    function checkMatch() {
+      const bad = sConfirm.value !== "" && sPass.value !== sConfirm.value;
+      sConfirm.setCustomValidity(bad ? "Passwords do not match." : "");
+    }
+
+    sPass.addEventListener("input", checkMatch);
+    sConfirm.addEventListener("input", checkMatch);
+
+    [loginForm, signupForm].forEach(form => {
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        if (form === signupForm) checkMatch();
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        showMsg("Demo only: form was not sent and no account was created.");
+      });
+    });
+
+    document.getElementById("forgot-password")
+      .addEventListener("click", () =>
+        showMsg("Password reset is not available in this demo."));
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
