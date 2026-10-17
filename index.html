@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A responsive sign-in and sign-up page demo.">
+  <meta name="theme-color" content="#18372d">
+  <title>Account access — Brightpath</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="brand-panel" aria-label="About Brightpath">
+      <a class="brand" href="./" aria-label="Brightpath home">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>brightpath</span>
+      </a>
+
+      <div class="brand-copy">
+        <p class="eyebrow">A BETTER WAY TO BEGIN</p>
+        <h1>Small steps.<br>Brighter days.</h1>
+        <p class="brand-description">
+          A calm space to keep your plans moving and focus on what matters.
+        </p>
+      </div>
+
+      <div class="panel-note">
+        <span class="note-dot" aria-hidden="true"></span>
+        <p>Make today a good place to start.</p>
+      </div>
+    </section>
+
+    <section class="auth-side" aria-label="Account access">
+      <div class="auth-card">
+        <header class="card-heading">
+          <p class="eyebrow" id="heading-eyebrow">YOUR ACCOUNT</p>
+          <h2 id="heading-title">Welcome back</h2>
+          <p id="heading-description">Sign in to continue where you left off.</p>
+        </header>
+
+        <div class="mode-switch" role="group" aria-label="Choose an account action">
+          <button
+            class="mode-button is-active"
+            type="button"
+            id="login-tab"
+            aria-pressed="true"
+            aria-controls="login-form"
+          >
+            Sign in
+          </button>
+          <button
+            class="mode-button"
+            type="button"
+            id="signup-tab"
+            aria-pressed="false"
+            aria-controls="signup-form"
+          >
+            Sign up
+          </button>
+        </div>
+
+        <p class="feedback" id="form-message" role="status" aria-live="polite" hidden></p>
+
+        <form class="auth-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email address</label>
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <div class="field-meta">
+              <label for="login-password">Password</label>
+              <button class="text-button" id="forgot-password" type="button">
+                Forgot password?
+              </button>
+            </div>
+
+            <div class="password-field">
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                placeholder="At least 8 characters"
+                autocomplete="current-password"
+                minlength="8"
+                required
+              >
+              <button
+                class="password-toggle"
+                type="button"
+                data-password-target="login-password"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <label class="check-row" for="remember-me">
+            <input id="remember-me" name="remember" type="checkbox">
+            <span>Remember me on this device</span>
+          </label>
+
+          <button class="primary-button" type="submit">
+            <span>Sign in</span>
+            <span aria-hidden="true">→</span>
+          </button>
+
+          <p class="security-note">
+            Demo only — do not enter a real password. This page has no authentication backend.
+          </p>
+        </form>
+
+        <form class="auth-form" id="signup-form" hidden>
+          <div class="field">
+            <label for="signup-name">Full name</label>
+            <input
+              id="signup-name"
+              name="name"
+              type="text"
+              placeholder="Your name"
+              autocomplete="name"
+              minlength="2"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="signup-email">Email address</label>
+            <input
+              id="signup-email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <div class="password-field">
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                placeholder="At least 8 characters"
+                autocomplete="new-password"
+                minlength="8"
+                required
+              >
+              <button
+                class="password-toggle"
+                type="button"
+                data-password-target="signup-password"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="signup-confirm">Confirm password</label>
+            <div class="password-field">
+              <input
+                id="signup-confirm"
+                name="confirm-password"
+                type="password"
+                placeholder="Enter the password again"
+                autocomplete="new-password"
+                minlength="8"
+                required
+              >
+              <button
+                class="password-toggle"
+                type="button"
+                data-password-target="signup-confirm"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <button class="primary-button" type="submit">
+            <span>Create demo account</span>
+            <span aria-hidden="true">→</span>
+          </button>
+
+          <p class="security-note">
+            Demo only — no account is created and no credentials are saved or sent.
+          </p>
+        </form>
+      </div>
+
+      <footer class="auth-footer">
+        <span>© <span id="current-year">2025</span> Brightpath</span>
+        <span>Authentication page demo</span>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>
