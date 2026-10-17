@@ -23,6 +23,9 @@
       --success: #1e6f3f;
       --success-bg: #eef7f0;
       --success-border: #c3e6cb;
+      --warning: #d35400;
+      --warning-bg: #fef5e7;
+      --warning-border: #fdebd0;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -174,6 +177,7 @@
       background:transparent; font-size:.8rem; font-weight:650;
     }
     .text-button:hover { text-decoration:underline; text-underline-offset:3px; }
+    .text-button:disabled { opacity:0.5; cursor:not-allowed; }
 
     .field input:not([type="checkbox"]) {
       width:100%; min-height:3.05rem; padding:.75rem .9rem;
@@ -233,8 +237,12 @@
       color:var(--success); background:var(--success-bg);
       border:1px solid var(--success-border);
     }
+    .msg.warning {
+      color:var(--warning); background:var(--warning-bg);
+      border:1px solid var(--warning-border);
+    }
 
-    /* ===== DASHBOARD (login ke baad) ===== */
+    /* ===== DASHBOARD ===== */
     .dashboard { text-align:center; }
     .dashboard h2 { margin-bottom:.5rem; }
     .dashboard .user-email {
@@ -248,12 +256,18 @@
     .dashboard .welcome-text {
       color:var(--muted); font-size:.95rem; margin:1rem 0 2rem;
     }
+    .dashboard .verification-badge {
+      display:inline-block; padding:.2rem .6rem;
+      background:#eef7f0; color:#1e6f3f;
+      border-radius:1rem; font-size:.75rem; font-weight:700;
+      margin-bottom:1rem;
+    }
 
     .logout-button {
       display:inline-flex; align-items:center; gap:.5rem;
       padding:.7rem 1.5rem; border:2px solid var(--danger);
       border-radius:.72rem; color:var(--danger);
-      background:transparent; font-size:.9rem; font-weight:650;
+      background:transparent; font-size:.9rem; font-weight:600;
       transition: background 150ms, color 150ms;
     }
     .logout-button:hover { background:var(--danger); color:#fff; }
@@ -355,13 +369,13 @@
             </div>
           </div>
 
-          <label class="check-row">
-            <input type="checkbox" id="remember-me">
-            <span>Remember me on this device</span>
-          </label>
-
           <button class="primary-button" type="submit" id="login-btn">
             <span>Sign in</span><span aria-hidden="true">→</span>
+          </button>
+
+          <!-- Resend Verification (Hidden by default) -->
+          <button class="text-button hidden" type="button" id="resend-verify-btn" style="width:100%; text-align:center; margin-top:0.5rem; color:var(--warning);">
+            ↻ Resend Verification Email
           </button>
         </form>
 
@@ -421,13 +435,17 @@
           </button>
         </form>
 
-        <!-- ===== DASHBOARD (login ke baad) ===== -->
+        <!-- ===== DASHBOARD ===== -->
         <div class="dashboard hidden" id="dashboard">
+          <div class="verification-badge" id="verify-badge">● Unverified</div>
           <p class="user-name" id="user-name">👋</p>
           <p class="user-email" id="user-email"></p>
-          <p class="welcome-text">You are successfully logged in!</p>
+          <p class="welcome-text" id="welcome-text">You are successfully logged in!</p>
           <button class="logout-button" id="logout-btn">
             🚪 Sign out
+          </button>
+          <button class="text-button" type="button" id="refresh-status-btn" style="margin-top:1rem; font-size:0.8rem;">
+            ↻ Refresh Verification Status
           </button>
         </div>
 
@@ -440,7 +458,7 @@
     </section>
   </main>
 
-  <!-- ===== FIREBASE SDK (CDN) ===== -->
+  <!-- ===== FIREBASE SDK ===== -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
@@ -451,11 +469,11 @@
 
     const firebaseConfig = {
       apiKey: "AIzaSyDPB9iPQNK3KCdQwj4vxNStIBJKKQ_thdg",
-      authDomain: "authentication-app-71836.firebaseapp.com",
-      projectId: "authentication-app-71836",
-      storageBucket: "authentication-app-71836.firebasestorage.app",
-      messagingSenderId: "905980239712",
-      appId: "1:905980239712:web:ff412a8ccaefe829e00805"
+  authDomain: "authentication-app-71836.firebaseapp.com",
+  projectId: "authentication-app-71836",
+  storageBucket: "authentication-app-71836.firebasestorage.app",
+  messagingSenderId: "905980239712",
+  appId: "1:905980239712:web:ff412a8ccaefe829e00805"
     };
 
     // ╔══════════════════════════════════════════════════╗
@@ -480,6 +498,11 @@
     const hDesc        = document.getElementById("h-desc");
     const userNameEl   = document.getElementById("user-name");
     const userEmailEl  = document.getElementById("user-email");
+    const verifyBadge  = document.getElementById("verify-badge");
+    const welcomeText  = document.getElementById("welcome-text");
+    const resendBtn    = document.getElementById("resend-verify-btn");
+
+    let currentUser = null;
 
     // ===== SHOW MESSAGE =====
     function showMsg(text, type = "error") {
@@ -492,29 +515,21 @@
       msg.className = "msg hidden";
     }
 
-    // ===== ERROR TRANSLATE (Hindi/English mix) =====
+    // ===== ERROR TRANSLATE =====
     function friendlyError(code) {
       const map = {
-        "auth/email-already-in-use":
-          "⚠️ Ye email pehle se registered hai. Sign in karo.",
-        "auth/invalid-email":
-          "⚠️ Email address galat hai. Sahi email daalo.",
-        "auth/user-not-found":
-          "⚠️ Ye email registered nahi hai. Pehle Sign up karo.",
-        "auth/wrong-password":
-          "⚠️ Password galat hai. Dobara try karo.",
-        "auth/invalid-credential":
-          "⚠️ Email ya Password galat hai. Check karo.",
-        "auth/weak-password":
-          "⚠️ Password kamzor hai. Kam se kam 8 characters daalo.",
-        "auth/too-many-requests":
-          "⚠️ Bahut zyada attempts. Kuch der baad try karo.",
-        "auth/network-request-failed":
-          "⚠️ Internet connection check karo.",
-        "auth/missing-password":
-          "⚠️ Password daalna zaroori hai.",
+        "auth/email-already-in-use": "⚠️ Ye email pehle se registered hai.",
+        "auth/invalid-email": "⚠️ Email address galat hai.",
+        "auth/user-not-found": "⚠️ Ye email registered nahi hai.",
+        "auth/wrong-password": "⚠️ Password galat hai.",
+        "auth/invalid-credential": "⚠️ Email ya Password galat hai.",
+        "auth/weak-password": "⚠️ Password kamzor hai (min 8 chars).",
+        "auth/too-many-requests": "⚠️ Bahut zyada attempts. Thoda wait karo.",
+        "auth/network-request-failed": "⚠️ Internet connection check karo.",
+        "auth/requires-recent-login": "⚠️ Security ke liye dobara login karo.",
+        "auth/unverified-email": "⚠️ Email verify nahi hai. Inbox check karo."
       };
-      return map[code] || "⚠️ Kuch galat ho gaya: " + code;
+      return map[code] || "⚠️ Error: " + code;
     }
 
     // ===== SET BUTTON LOADING =====
@@ -542,6 +557,7 @@
       hEyebrow.textContent = "YOUR ACCOUNT";
       hTitle.textContent = "Welcome back";
       hDesc.textContent = "Sign in to continue where you left off.";
+      resendBtn.classList.add("hidden");
       hideMsg();
     }
 
@@ -582,8 +598,25 @@
       hEyebrow.textContent = "WELCOME";
       hTitle.textContent = "You're logged in! 🎉";
       hDesc.textContent = "Your authentication was successful.";
+      
       userNameEl.textContent = "👋 Hello, " + (user.displayName || "User") + "!";
       userEmailEl.textContent = user.email;
+      
+      // Check Verification Status
+      if (user.emailVerified) {
+        verifyBadge.textContent = "● Verified";
+        verifyBadge.style.background = "#eef7f0";
+        verifyBadge.style.color = "#1e6f3f";
+        welcomeText.textContent = "Your email is verified. Full access granted.";
+        resendBtn.classList.add("hidden");
+      } else {
+        verifyBadge.textContent = "● Unverified";
+        verifyBadge.style.background = "#fef5e7";
+        verifyBadge.style.color = "#d35400";
+        welcomeText.textContent = "⚠️ Please verify your email to unlock all features.";
+        resendBtn.classList.remove("hidden");
+      }
+      
       hideMsg();
     }
 
@@ -603,7 +636,7 @@
       });
     });
 
-    // ===== SIGNUP =====
+    // ===== SIGNUP (With Email Verification) =====
     signupForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -622,12 +655,17 @@
 
       try {
         const result = await auth.createUserWithEmailAndPassword(email, pass);
-
-        // Save user name
         await result.user.updateProfile({ displayName: name });
+        
+        // Send Verification Email
+        await result.user.sendEmailVerification();
 
-        showMsg("✅ Account successfully created! Welcome, " + name + "!", "success");
-        showDashboard(result.user);
+        showMsg("✅ Account created! Verification email bhej diya gaya hai. Inbox check karo.", "success");
+        
+        // Auto logout until verified (Optional security step)
+        await auth.signOut();
+        showLogin();
+        
       } catch (err) {
         showMsg(friendlyError(err.code), "error");
       } finally {
@@ -635,7 +673,7 @@
       }
     });
 
-    // ===== LOGIN =====
+    // ===== LOGIN (Check Verification) =====
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -647,6 +685,15 @@
 
       try {
         const result = await auth.signInWithEmailAndPassword(email, pass);
+        
+        // Check if email is verified
+        if (!result.user.emailVerified) {
+          showMsg("⚠️ Email verify nahi hai. Please inbox se link pe click karo.", "warning");
+          resendBtn.classList.remove("hidden");
+          await auth.signOut(); // Force logout if not verified
+          return;
+        }
+
         showMsg("✅ Login successful!", "success");
         showDashboard(result.user);
       } catch (err) {
@@ -654,6 +701,26 @@
       } finally {
         setLoading(btn, false);
       }
+    });
+
+    // ===== RESEND VERIFICATION EMAIL =====
+    resendBtn.addEventListener("click", async () => {
+      if (!currentUser) return;
+      
+      try {
+        await currentUser.sendEmailVerification();
+        showMsg("✅ Verification email dobara bhej diya gaya hai!", "success");
+      } catch (err) {
+        showMsg(friendlyError(err.code), "error");
+      }
+    });
+
+    // ===== REFRESH STATUS (Dashboard me) =====
+    document.getElementById("refresh-status-btn").addEventListener("click", async () => {
+      if (!currentUser) return;
+      await currentUser.reload();
+      showDashboard(currentUser);
+      showMsg("Status refresh ho gaya!", "success");
     });
 
     // ===== FORGOT PASSWORD =====
@@ -686,10 +753,14 @@
       showMsg("✅ Successfully logged out!", "success");
     });
 
-    // ===== AUTO LOGIN CHECK (page reload pe) =====
+    // ===== AUTO LOGIN CHECK =====
     auth.onAuthStateChanged(user => {
+      currentUser = user;
       if (user) {
-        showDashboard(user);
+        // Reload user to get latest verification status
+        user.reload().then(() => {
+          showDashboard(user);
+        });
       } else {
         showLogin();
       }
